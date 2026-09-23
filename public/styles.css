@@ -1,0 +1,202 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #f4f6f8;
+  color: #1f2933;
+  line-height: 1.5;
+}
+
+.contenedor {
+  max-width: 480px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.contenedor.ancho {
+  max-width: 900px;
+}
+
+header h1 {
+  margin-bottom: 4px;
+}
+
+.subtitulo {
+  margin-top: 0;
+  color: #616e7c;
+}
+
+.tarjeta {
+  background: #fff;
+  border: 1px solid #e4e7eb;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-top: 12px;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd2d9;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.boton {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 9px 16px;
+  border: 1px solid #cbd2d9;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2933;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.boton:hover {
+  background: #eef2f6;
+}
+
+.boton-primario {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.boton-primario:hover {
+  background: #1d4ed8;
+}
+
+.enlace {
+  margin-top: 14px;
+  font-size: 0.9rem;
+}
+
+.mensaje {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.mensaje.ok {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.mensaje.error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.etiqueta-rol {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #e4e7eb;
+}
+
+.etiqueta-rol.admin {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.etiqueta-rol.usuario {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cabecera-app {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sesion-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.sesion-cabecera .boton {
+  margin-top: 0;
+}
+
+.fila-titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fila-titulo .boton {
+  margin-top: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 0.92rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e4e7eb;
+}
+
+th {
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.etiqueta-tipo {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.etiqueta-tipo.empresa {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.etiqueta-tipo.organizacion {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.vacio {
+  color: #616e7c;
+  font-style: italic;
+}

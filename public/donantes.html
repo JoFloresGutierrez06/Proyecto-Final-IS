@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Donantes - Gestión de Donaciones</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="contenedor ancho">
+    <header class="cabecera-app">
+      <div>
+        <h1>Donantes</h1>
+        <p class="subtitulo">Registro y consulta de donantes</p>
+      </div>
+      <div class="sesion-cabecera">
+        <span id="sesion-info"></span>
+        <a href="/" class="boton">Salir</a>
+      </div>
+    </header>
+
+    <section class="tarjeta" id="panel-crear" hidden>
+      <h2>Registrar donante</h2>
+      <form id="form-donante">
+        <label for="d-nombre">Nombre *</label>
+        <input type="text" id="d-nombre" required />
+
+        <label for="d-tipo">Tipo *</label>
+        <select id="d-tipo" required>
+          <option value="empresa">Empresa</option>
+          <option value="organizacion">Organización</option>
+        </select>
+
+        <label for="d-email">Correo de contacto</label>
+        <input type="email" id="d-email" />
+
+        <label for="d-tel">Teléfono de contacto</label>
+        <input type="tel" id="d-tel" />
+
+        <button type="submit" class="boton boton-primario">Guardar donante</button>
+      </form>
+      <p id="msg-donante" class="mensaje" hidden></p>
+    </section>
+
+    <section class="tarjeta">
+      <div class="fila-titulo">
+        <h2>Lista de donantes</h2>
+        <button id="btn-recargar" class="boton">Recargar</button>
+      </div>
+      <p id="msg-lista" class="mensaje" hidden></p>
+      <table id="tabla-donantes">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Contacto</th>
+            <th>Registro</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="vacio" class="vacio" hidden>No hay donantes registrados todavía.</p>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/donantes.js"></script>
+</body>
+</html>

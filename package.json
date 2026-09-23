@@ -1,0 +1,33 @@
+{
+  "name": "gestion-donaciones",
+  "version": "0.1.0",
+  "description": "MVP de sistema web para gestionar donaciones de alimentos y recursos entre empresas y organizaciones sociales",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/seed.js",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [
+    "donaciones",
+    "express",
+    "jwt",
+    "mvp"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "jest": "^30.0.5",
+    "supertest": "^7.1.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

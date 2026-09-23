@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Donaciones - Acceso</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="contenedor">
+    <header>
+      <h1>Gestión de Donaciones</h1>
+      <p class="subtitulo">MVP - Acceso al sistema</p>
+    </header>
+
+    <section class="tarjeta" id="panel-usuario" hidden>
+      <h2>Sesión activa</h2>
+      <p><strong>Nombre:</strong> <span id="u-nombre"></span></p>
+      <p><strong>Correo:</strong> <span id="u-correo"></span></p>
+      <p><strong>Rol:</strong> <span id="u-rol" class="etiqueta-rol"></span></p>
+      <div class="acciones">
+        <a href="/donantes.html" class="boton boton-primario">Ir a donantes</a>
+        <button id="btn-salir" class="boton">Cerrar sesión</button>
+      </div>
+    </section>
+
+    <section class="tarjeta" id="panel-login">
+      <h2>Iniciar sesión</h2>
+      <form id="form-login">
+        <label for="login-correo">Correo</label>
+        <input type="email" id="login-correo" required autocomplete="email" />
+
+        <label for="login-clave">Contraseña</label>
+        <input type="password" id="login-clave" required autocomplete="current-password" />
+
+        <button type="submit" class="boton boton-primario">Entrar</button>
+      </form>
+      <p class="enlace">¿No tienes cuenta? <a href="#" id="mostrar-registro">Regístrate</a></p>
+      <p id="msg-login" class="mensaje" hidden></p>
+    </section>
+
+    <section class="tarjeta" id="panel-registro" hidden>
+      <h2>Registrar usuario</h2>
+      <form id="form-registro">
+        <label for="reg-nombre">Nombre</label>
+        <input type="text" id="reg-nombre" required />
+
+        <label for="reg-correo">Correo</label>
+        <input type="email" id="reg-correo" required />
+
+        <label for="reg-clave">Contraseña (mínimo 6 caracteres)</label>
+        <input type="password" id="reg-clave" required minlength="6" />
+
+        <button type="submit" class="boton boton-primario">Registrarme</button>
+      </form>
+      <p class="enlace">¿Ya tienes cuenta? <a href="#" id="mostrar-login">Inicia sesión</a></p>
+      <p id="msg-registro" class="mensaje" hidden></p>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>

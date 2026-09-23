@@ -1,0 +1,40 @@
+name: CI - Pruebas y cobertura
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Instalar, probar y verificar cobertura
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x, 24.x]
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar pruebas con cobertura
+        run: npm run test:coverage
+
+      # Jest falla automáticamente (exit code != 0) si la cobertura
+      # global baja del umbral de 80% definido en jest.config.js
+      - name: Subir reporte de cobertura (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-node${{ matrix.node-version }}
+          path: coverage/
+          retention-days: 7
