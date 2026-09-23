@@ -2,7 +2,7 @@
 
 Sistema web para gestionar donaciones de alimentos y recursos entre empresas y organizaciones sociales.
 
-**Etapa actual:** MVP de la materia de Ingeniería de Software. Incluye autenticación JWT con roles, módulo de donantes, pruebas con cobertura ≥80%, pipeline CI con GitHub Actions y frontend básico. El despliegue automático (CD) se activará cuando el CI esté verde.
+**Etapa actual:** MVP completo de Ingeniería de Software: autenticación JWT con roles, módulo de donantes, pruebas con cobertura ≥80%, CI/CD con GitHub Actions + Render y frontend básico.
 
 ---
 
@@ -21,8 +21,8 @@ Sistema web para gestionar donaciones de alimentos y recursos entre empresas y o
 11. [Persistencia de datos](#11-persistencia-de-datos)
 12. [Pruebas y cobertura](#12-pruebas-y-cobertura)
 13. [Frontend](#13-frontend)
-14. [GitHub Actions (CI)](#14-github-actions-ci)
-15. [Despliegue (CD) — pendiente hasta CI verde](#15-despliegue-cd--pendiente-hasta-ci-verde)
+14. [GitHub Actions (CI + CD)](#14-github-actions-ci--cd)
+15. [Despliegue (CD) — Render](#15-despliegue-cd--render)
 16. [Configuración manual necesaria](#16-configuración-manual-necesaria)
 17. [Funcionalidades futuras](#17-funcionalidades-futuras)
 
@@ -372,67 +372,86 @@ El token se guarda en `localStorage` y se envía en cada petición (`public/js/a
 
 ---
 
-## 14. GitHub Actions (CI)
+## 14. GitHub Actions (CI + CD)
 
 Archivo: `.github/workflows/ci.yml`
 
-| Disparador | `push` y `pull_request` |
-|---|---|
-| Runner | `ubuntu-latest` |
-| Node.js | matriz `22.x` y `24.x` |
-| Pasos | checkout → `npm ci` → `npm run test:coverage` |
-| Fallo | si falla una prueba **o** la cobertura <80% |
-| Artifact | reporte de cobertura (`coverage/`) conservado 7 días |
+| | Job `test` (CI) | Job `deploy` (CD) |
+|---|---|---|
+| **Disparador** | `push` y `pull_request` a `main` | solo `push` a `main` y **si `test` pasó** (`needs: test`) |
+| **Runner** | `ubuntu-latest` | `ubuntu-latest` |
+| **Node.js** | matriz `22.x` y `24.x` | — |
+| **Pasos** | checkout → `npm ci` → `npm run test:coverage` → artifact | `curl` al deploy hook de Render |
+| **Fallo** | si falla una prueba **o** cobertura <80% → no se despliega | si el hook responde error |
 
-El umbral de 80% está en `jest.config.js`; Jest sale con código distinto de cero si no se cumple, y Actions marca el job como fallido.
+El umbral de 80% está en `jest.config.js`; Jest sale con código distinto de cero si no se cumple, y Actions marca el job como fallido → el job `deploy` **no se ejecuta** (por `needs: test`).
 
-Verificación: tras hacer **push** desde GitHub Desktop → pestaña **Actions** en GitHub → workflow *CI - Pruebas y cobertura* → ✅ verde.
+El job `deploy` lee el secreto `RENDER_DEPLOY_HOOK_URL`. Si el secreto **no está configurado**, el paso se omite con aviso (el CI no falla); en cuanto lo añadas, el despliegue automático queda activo.
+
+Verificación: tras **push** a `main` → pestaña **Actions** → workflow → `test` ✅ → `deploy` ✅.
 
 ---
 
-## 15. Despliegue (CD) — pendiente hasta CI verde
+## 15. Despliegue (CD) — Render
 
-**Plataforma propuesta: [Render](https://render.com)** — free tier para Node.js, conexión directa con GitHub y deploy hooks para disparar el despliegue desde Actions.
+**Plataforma: [Render](https://render.com)** — free tier para Node.js, conexión directa con GitHub y deploy hooks para disparar el despliegue desde Actions.
 
-Estado: **ETAPA 7 pendiente** a petición del autor: se configurará cuando el workflow de CI esté verde en GitHub.
+El workflow ya contiene el job `deploy` (solo se activa cuando `RENDER_DEPLOY_HOOK_URL` está en GitHub Secrets).
 
-### Flujo previsto (cuando se active)
+### Flujo completo
 
 ```
 Código local
   → push a GitHub (GitHub Desktop)
-  → GitHub Actions (instalar → test → cobertura ≥80%)
-  → job "deploy" (solo en push a main, solo si test pasó)
+  → GitHub Actions: job test (instalar → test → cobertura ≥80%)
+  → job deploy (solo en push a main, solo si test pasó)
   → Render Deploy Hook
-  → Render instala dependencias y arranca npm start
+  → Render: npm ci → npm start
   → Aplicación disponible en la URL de prueba de Render
 ```
 
-### Configuración que deberá hacerse en Render
+### Configuración en Render (paso a paso)
 
-1. Crear cuenta en Render → **New → Web Service** → conectar el repositorio de GitHub.
-2. Configuración:
-   - **Environment:** Node
+1. Crear cuenta en [Render](https://render.com) → **New → Web Service** → conectar el repositorio de GitHub `JoFloresGutierrez06/Proyecto-Final-IS`.
+2. Configuración del servicio:
+   - **Name:** libre (ej. `gestion-donaciones-mvp`)
+   - **Environment:** `Node`
    - **Build Command:** `npm ci`
    - **Start Command:** `npm start`
-3. **Environment** (variables) en Render:
+   - **Plan:** Free
+3. **Environment** (pestaña Environment del servicio) — añadir:
 
    | Variable | Valor |
    |---|---|
-   | `JWT_SECRET` | cadena aleatoria larga (generar con `openssl rand -hex 32`) |
+   | `JWT_SECRET` | cadena aleatoria larga (generar localmente: `openssl rand -hex 32` o similar) |
    | `JWT_EXPIRES_IN` | `1h` |
    | `NODE_ENV` | `production` |
+   | `ADMIN_EMAIL` | correo del admin (para crearlo tras el deploy) |
+   | `ADMIN_PASSWORD` | contraseña del admin |
+   | `ADMIN_NAME` | nombre del admin |
    | `PORT` | lo inyecta Render (no hace falta fijarlo) |
 
-4. Copiar la **Deploy Hook URL** (Settings → Build & Deploy → Deploy hooks) y añadirla como secreto en GitHub:
-
-   | Dónde | Secreto | Valor |
-   |---|---|---|
-   | GitHub → Settings → Secrets and variables → Actions | `RENDER_DEPLOY_HOOK_URL` | URL del deploy hook |
+4. **Deploy Hook:** en Render, del servicio → **Settings → Build & Deploy → Deploy hooks** → crear hook de tipo **Deploy** → copiar la URL generada.
+5. **Secreto en GitHub:** [https://github.com/JoFloresGutierrez06/Proyecto-Final-IS/settings/secrets/actions](https://github.com/JoFloresGutierrez06/Proyecto-Final-IS/settings/secrets/actions) → **New repository secret**:
+   - Name: `RENDER_DEPLOY_HOOK_URL`
+   - Value: la URL del deploy hook (empieza por `https://api.render.com/...`)
 
 > Los secretos **nunca** se escriben en el código ni en el workflow; solo en GitHub Secrets y en el panel de Render.
 
+### Tras el primer deploy
+
+La BD SQLite en Render arranca vacía (disco efímero). Para crear el administrador en el entorno de prueba:
+
+```bash
+# Opción A (recomendada para el MVP): terminal de Render (Shell) o job manual
+npm run seed
+```
+
+O registrar el primer usuario desde la interfaz y promoverlo manualmente si no se usa seed.
+
 **Limitación conocida (free tier):** el disco de Render es efímero; la BD SQLite se regenera en cada redeploy. Aceptable para un entorno de prueba. En producción se migrará a Supabase/PostgreSQL usando la capa de repositories.
+
+**Nota:** Render free tier puede "dormir" el servicio tras inactividad; el primer request tarda ~30 s en despertarlo.
 
 ---
 
@@ -442,12 +461,15 @@ Código local
 |---|---|---|---|
 | 1 | Editar `.env` con `JWT_SECRET` fuerte | Local | Antes de usar la app |
 | 2 | Ejecutar `npm run seed` | Local | Primera vez |
-| 3 | Push del código | GitHub Desktop | Para que corra CI |
+| 3 | Push del código | GitHub Desktop / git | Para que corra CI |
 | 4 | Verificar workflow verde | GitHub → Actions | Tras el push |
-| 5 | Crear Web Service en Render | render.com | Cuando CI esté verde (ETAPA 7) |
-| 6 | Definir `JWT_SECRET` y `NODE_ENV` en Render | Panel de Render | Al crear el servicio |
-| 7 | Añadir `RENDER_DEPLOY_HOOK_URL` | GitHub Secrets | Al activar el CD |
-| 8 | (Opcional) Cambiar `ADMIN_PASSWORD` del seed | `.env` local | Recomendado |
+| 5 | Crear Web Service en Render | render.com | CI verde |
+| 6 | Definir `JWT_SECRET`, `NODE_ENV`, `ADMIN_*` en Render | Panel de Render | Al crear el servicio |
+| 7 | Crear Deploy Hook en Render y copiar su URL | Render → Settings → Build & Deploy | Después del paso 5 |
+| 8 | Añadir secreto `RENDER_DEPLOY_HOOK_URL` | GitHub → Settings → Secrets → Actions | Después del paso 7 |
+| 9 | (Opcional) Cambiar `ADMIN_PASSWORD` del seed | `.env` local | Recomendado |
+
+> El paso 8 activa el despliegue automático: sin ese secreto, el job `deploy` se omite (el CI sigue funcionando).
 
 ---
 
