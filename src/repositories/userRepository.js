@@ -30,6 +30,21 @@ function contarUsuarios() {
   return Number(fila.total);
 }
 
+function actualizar(id, campos) {
+  const db = obtenerConexion();
+  const permitidos = ['nombre', 'correo', 'contrasena', 'rol'];
+  const claves = Object.keys(campos).filter((k) => permitidos.includes(k));
+  if (claves.length === 0) {
+    return encontrarPorId(id);
+  }
+  const sets = claves.map((k) => `${k} = ?`).join(', ');
+  db.prepare(`UPDATE users SET ${sets} WHERE id = ?`).run(
+    ...claves.map((k) => campos[k]),
+    id
+  );
+  return encontrarPorId(id);
+}
+
 function mapear(fila) {
   return {
     id: Number(fila.id),
@@ -51,6 +66,7 @@ module.exports = {
   encontrarPorCorreo,
   encontrarPorId,
   crear,
+  actualizar,
   contarUsuarios,
   aPublico,
 };

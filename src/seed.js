@@ -1,43 +1,36 @@
-const { conectar, cerrarConexion } = require('./db/connection');
-const userRepository = require('./repositories/userRepository');
-const authService = require('./services/authService');
+const bcrypt = require('bcryptjs');
 const env = require('./config/env');
+const userRepository = require('./repositories/userRepository');
+const { conectar, cerrarConexion } = require('./db/connection');
+const { asegurarAdmin, variablesDeAdminDefinidas } = require('./services/seedService');
 
 async function seed() {
   conectar();
 
-  const existe = userRepository.encontrarPorCorreo(env.admin.email);
-  if (existe) {
-    console.log(`El administrador ya existe: ${env.admin.email}`);
+  try {
+    const resultado = await asegurarAdmin();
+    if (resultado.accion === 'creado') {
+      console.log(`Administrador creado: ${resultado.correo}`);
+    } else if (resultado.accion === 'actualizado') {
+      console.log(`Administrador actualizado (rol/contraseña sincronizados): ${resultado.correo}`);
+    } else {
+      console.log(`El administrador ya existe y coincide: ${resultado.correo}`);
+    }
+    if (!variablesDeAdminDefinidas()) {
+      console.log(
+        'Nota: ADMIN_EMAIL/ADMIN_PASSWORD no están en el entorno; se usaron los valores por defecto de config/env.js.'
+      );
+    }
+  } finally {
     cerrarConexion();
-    return;
   }
-
-  const errores = authService.validarRegistro({
-    nombre: env.admin.name,
-    correo: env.admin.email,
-    contrasena: env.admin.password,
-  });
-  if (errores.length > 0) {
-    console.error('Credenciales de administrador inválidas en las variables de entorno:');
-    errores.forEach((e) => console.error(` - ${e}`));
-    cerrarConexion();
-    process.exit(1);
-  }
-
-  const hash = await require('bcryptjs').hash(env.admin.password, 10);
-  userRepository.crear({
-    nombre: env.admin.name,
-    correo: env.admin.email.toLowerCase(),
-    contrasena: hash,
-    rol: 'administrador',
-  });
-
-  console.log(`Administrador creado: ${env.admin.email}`);
-  cerrarConexion();
 }
 
-seed().catch((err) => {
-  console.error('Error al ejecutar el seed:', err.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  seed().catch((err) => {
+    console.error('Error al ejecutar el seed:', err.message);
+    process.exit(1);
+  });
+}
+
+module.exports = { seed };

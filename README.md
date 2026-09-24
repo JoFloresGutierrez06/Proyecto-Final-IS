@@ -333,11 +333,11 @@ npm run test:coverage
 
 | Métrica | Valor |
 |---|---|
-| Statements | **~94.6%** |
-| Branches | **~88.9%** |
-| Functions | **~92.8%** |
-| Lines | **~95.8%** |
-| Pruebas | **48** (5 suites) |
+| Statements | **~96%** |
+| Branches | **~89%** |
+| Functions | **~95.8%** |
+| Lines | **~97%** |
+| Pruebas | **55** (6 suites) |
 
 > Los archivos excluidos son solo los entry points (`server.js`, `seed.js`), que no contienen lógica testeable. El resto del código fuente sí se mide.
 
@@ -351,6 +351,7 @@ Qué se prueba:
 - Creación/lista/consulta de donantes + validaciones + 404/400
 - Manejador de errores (500 genérico, statusCode personalizado, headersSent)
 - Flujo integral registro → login → crear → consultar
+- Seed del administrador: creación, no duplicado, sincronización de rol/contraseña, credenciales inválidas
 
 ---
 
@@ -440,14 +441,14 @@ Código local
 
 ### Tras el primer deploy
 
-La BD SQLite en Render arranca vacía (disco efímero). Para crear el administrador en el entorno de prueba:
+**El servidor crea (o sincroniza) el administrador automáticamente al arrancar** si `ADMIN_EMAIL` y `ADMIN_PASSWORD` están definidos en el entorno:
 
-```bash
-# Opción A (recomendada para el MVP): terminal de Render (Shell) o job manual
-npm run seed
-```
+- Si no existe el usuario → lo crea con rol `administrador`.
+- Si existe pero con otra contraseña u otro rol → lo actualiza (la credencial del admin queda sincronizada con las variables de entorno en cada arranque).
 
-O registrar el primer usuario desde la interfaz y promoverlo manualmente si no se usa seed.
+Por eso, en Render **no hace falta ejecutar `npm run seed` manualmente** (el Shell es una función de pago): basta con definir `ADMIN_*` en el entorno del servicio y redesplegar.
+
+Localmente, `npm run seed` sigue disponible y funciona igual (si `ADMIN_*` no están en `.env`, usa los valores por defecto de `config/env.js`).
 
 **Limitación conocida (free tier):** el disco de Render es efímero; la BD SQLite se regenera en cada redeploy. Aceptable para un entorno de prueba. En producción se migrará a Supabase/PostgreSQL usando la capa de repositories.
 
@@ -470,6 +471,8 @@ O registrar el primer usuario desde la interfaz y promoverlo manualmente si no s
 | 9 | (Opcional) Cambiar `ADMIN_PASSWORD` del seed | `.env` local | Recomendado |
 
 > El paso 8 activa el despliegue automático: sin ese secreto, el job `deploy` se omite (el CI sigue funcionando).
+>
+> El admin **no** necesita `npm run seed` en Render: el servidor lo crea/sincroniza solo al arrancar con las variables `ADMIN_*`.
 
 ---
 
