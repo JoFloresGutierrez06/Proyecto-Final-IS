@@ -30,6 +30,14 @@ function contarUsuarios() {
   return Number(fila.total);
 }
 
+function existeAdministrador() {
+  const db = obtenerConexion();
+  const fila = db
+    .prepare("SELECT COUNT(*) AS total FROM users WHERE rol = 'administrador'")
+    .get();
+  return Number(fila.total) > 0;
+}
+
 function actualizar(id, campos) {
   const db = obtenerConexion();
   const permitidos = ['nombre', 'correo', 'contrasena', 'rol'];
@@ -68,5 +76,6 @@ module.exports = {
   crear,
   actualizar,
   contarUsuarios,
+  existeAdministrador,
   aPublico,
 };

@@ -172,8 +172,16 @@ Comprobación rápida:
 
 ```bash
 curl http://localhost:3000/api/salud
-# → {"estado":"ok","mensaje":"API de gestión de donaciones funcionando"}
+# → {"estado":"ok","mensaje":"API de gestión de donaciones funcionando","admin":"presente"}
 ```
+
+El campo `admin` sirve como indicador de diagnóstico sin necesidad de abrir los logs:
+
+| Valor | Significado |
+|---|---|
+| `presente` | Existe al menos un usuario con rol `administrador` → el login del admin debe funcionar |
+| `ausente` | No hay administrador en la BD → ejecutar `npm run seed` o revisar `ADMIN_*` |
+| `desconocido` | No se pudo consultar la BD |
 
 ---
 
@@ -231,7 +239,7 @@ curl http://localhost:3000/api/auth/perfil \
 
 | Método | Ruta | Auth | Rol | Descripción |
 |---|---|---|---|---|
-| GET | `/api/salud` | No | — | Health check |
+| GET | `/api/salud` | No | — | Health check + estado del admin (`presente`/`ausente`) |
 | POST | `/api/auth/registro` | No | — | Registrar usuario |
 | POST | `/api/auth/login` | No | — | Iniciar sesión → JWT |
 | GET | `/api/auth/perfil` | JWT | Cualquiera | Datos del usuario actual |

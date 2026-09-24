@@ -3,10 +3,19 @@ const { app } = require('./helpers');
 const { manejarError } = require('../src/middleware/errorHandler');
 
 describe('Manejo de errores y rutas', () => {
-  test('GET /api/salud responde 200', async () => {
+  test('GET /api/salud responde 200 con admin ausente en BD vacía', async () => {
     const res = await request(app).get('/api/salud');
     expect(res.status).toBe(200);
     expect(res.body.estado).toBe('ok');
+    expect(res.body.admin).toBe('ausente');
+  });
+
+  test('GET /api/salud reporta admin presente tras el seed', async () => {
+    const { asegurarAdmin } = require('../src/services/seedService');
+    await asegurarAdmin();
+    const res = await request(app).get('/api/salud');
+    expect(res.status).toBe(200);
+    expect(res.body.admin).toBe('presente');
   });
 
   test('ruta API inexistente devuelve 404 JSON', async () => {
