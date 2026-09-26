@@ -63,10 +63,10 @@ Demostrar los requisitos mínimos del proyecto:
 ## 3. Estructura del proyecto
 
 ```
-├── .github/workflows/ci.yml      # Pipeline CI (pruebas + cobertura)
+├── .github/workflows/ci.yml      # Pipeline CI/CD (pruebas + despliegue a Render)
 ├── public/                       # Frontend estático
 │   ├── index.html                # Login / registro / sesión
-│   ├── donantes.html             # Lista y alta de donantes
+│   ├── donantes.html             # Lista, alta, edición y eliminación de donantes
 │   ├── styles.css
 │   └── js/
 │       ├── api.js                # Cliente fetch + token en localStorage
@@ -86,7 +86,8 @@ Demostrar los requisitos mínimos del proyecto:
 │   │   └── donanteRepository.js
 │   ├── services/                 # Lógica de negocio y validaciones
 │   │   ├── authService.js
-│   │   └── donanteService.js
+│   │   ├── donanteService.js
+│   │   └── seedService.js
 │   ├── controllers/              # Reciben HTTP → llaman a services
 │   │   ├── authController.js
 │   │   └── donantesController.js
@@ -104,6 +105,7 @@ Demostrar los requisitos mínimos del proyecto:
 │   ├── donantes.test.js
 │   ├── roles.test.js
 │   ├── errorHandler.test.js
+│   ├── seed.test.js
 │   └── integration.test.js
 ├── .env.example                  # Plantilla de variables de entorno
 ├── .gitignore
