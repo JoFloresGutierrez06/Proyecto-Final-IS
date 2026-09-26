@@ -28,6 +28,20 @@ function contar() {
   return Number(fila.total);
 }
 
+function actualizar(id, { nombre, tipo, contacto_email, contacto_telefono }) {
+  const db = obtenerConexion();
+  db.prepare(
+    'UPDATE donantes SET nombre = ?, tipo = ?, contacto_email = ?, contacto_telefono = ? WHERE id = ?'
+  ).run(nombre, tipo, contacto_email || null, contacto_telefono || null, id);
+  return encontrarPorId(id);
+}
+
+function eliminar(id) {
+  const db = obtenerConexion();
+  const resultado = db.prepare('DELETE FROM donantes WHERE id = ?').run(id);
+  return resultado.changes > 0;
+}
+
 function mapear(fila) {
   return {
     id: Number(fila.id),
@@ -39,4 +53,4 @@ function mapear(fila) {
   };
 }
 
-module.exports = { listar, encontrarPorId, crear, contar };
+module.exports = { listar, encontrarPorId, crear, contar, actualizar, eliminar };

@@ -131,6 +131,20 @@ select {
   flex-wrap: wrap;
 }
 
+.acciones .boton {
+  margin-top: 0;
+}
+
+.boton-peligro {
+  background: #fff;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.boton-peligro:hover {
+  background: #fef2f2;
+}
+
 .cabecera-app {
   display: flex;
   justify-content: space-between;

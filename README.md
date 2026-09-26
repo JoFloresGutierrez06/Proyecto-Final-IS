@@ -2,7 +2,7 @@
 
 Sistema web para gestionar donaciones de alimentos y recursos entre empresas y organizaciones sociales.
 
-**Etapa actual:** MVP completo de Ingeniería de Software: autenticación JWT con roles, módulo de donantes, pruebas con cobertura ≥80%, CI/CD con GitHub Actions + Render y frontend básico.
+**Etapa actual:** MVP completo de Ingeniería de Software: autenticación JWT con roles, módulo de donantes con alta, edición y eliminación, pruebas con cobertura ≥80%, CI/CD con GitHub Actions + Render y frontend básico.
 
 ---
 
@@ -35,7 +35,7 @@ Demostrar los requisitos mínimos del proyecto:
 - Backend con **Node.js** y **Express**
 - Autenticación con **JWT**
 - Dos roles: **administrador** y **usuario**
-- Módulo para **registrar y consultar donantes**
+- Módulo para **registrar, editar, consultar y eliminar donantes**
 - Pruebas unitarias con **Jest** y cobertura **≥80%**
 - Pipeline **CI/CD** con **GitHub Actions**
 - Preparado para ampliarse (inventario, entregas, notificaciones, PostgreSQL/Supabase)
@@ -226,6 +226,8 @@ curl http://localhost:3000/api/auth/perfil \
 | Iniciar sesión | ✅ | ✅ | ✅ |
 | Ver su perfil (`GET /api/auth/perfil`) | ✅ | ✅ | ❌ 401 |
 | **Crear** donante (`POST /api/donantes`) | ✅ | ❌ 403 | ❌ 401 |
+| **Editar** donante (`PUT /api/donantes/:id`) | ✅ | ❌ 403 | ❌ 401 |
+| **Eliminar** donante (`DELETE /api/donantes/:id`) | ✅ | ❌ 403 | ❌ 401 |
 | **Listar** donantes (`GET /api/donantes`) | ✅ | ✅ | ❌ 401 |
 | **Consultar** donante por id (`GET /api/donantes/:id`) | ✅ | ✅ | ❌ 401 |
 
@@ -246,6 +248,8 @@ curl http://localhost:3000/api/auth/perfil \
 | POST | `/api/donantes` | JWT | administrador | Crear donante |
 | GET | `/api/donantes` | JWT | Cualquiera | Listar donantes |
 | GET | `/api/donantes/:id` | JWT | Cualquiera | Consultar por id |
+| PUT | `/api/donantes/:id` | JWT | administrador | Editar donante (parcial) |
+| DELETE | `/api/donantes/:id` | JWT | administrador | Eliminar donante |
 
 ### Ejemplos
 
@@ -294,6 +298,30 @@ curl http://localhost:3000/api/donantes/1 \
 # 404 → id inexistente
 ```
 
+**Editar donante (solo administrador)**
+
+```bash
+curl -X PUT http://localhost:3000/api/donantes/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>" \
+  -d '{"nombre":"Alimentos del Sur S.A. (editado)","contacto_telefono":"555-9999"}'
+# 200 → donante actualizado (los campos no enviados se conservan)
+# 400 → validación fallida o id no numérico
+# 403 → rol sin permisos
+# 404 → id inexistente
+```
+
+**Eliminar donante (solo administrador)**
+
+```bash
+curl -X DELETE http://localhost:3000/api/donantes/1 \
+  -H "Authorization: Bearer <TOKEN_ADMIN>"
+# 200 → donante eliminado
+# 400 → id no numérico
+# 403 → rol sin permisos
+# 404 → id inexistente (o ya eliminado)
+```
+
 ---
 
 ## 10. Módulo de donantes
@@ -309,7 +337,9 @@ Campos de un donante:
 | `contacto_telefono` | texto | opcional | libre |
 | `fecha_registro` | fecha | automática | `datetime('now')` |
 
-Validaciones en `src/services/donanteService.js`. Respuestas: `201` creado, `200` consulta, `400` validación, `401` sin token, `403` rol insuficiente, `404` no encontrado.
+Validaciones en `src/services/donanteService.js`. Respuestas: `201` creado, `200` consulta/edición/eliminación, `400` validación, `401` sin token, `403` rol insuficiente, `404` no encontrado.
+
+La **edición** (`PUT`) es parcial: solo se validan y actualizan los campos enviados; los demás conservan su valor. La **eliminación** (`DELETE`) devuelve el donante borrado y luego desaparece de listas y consultas.
 
 ---
 
@@ -343,9 +373,9 @@ npm run test:coverage
 |---|---|
 | Statements | **~96%** |
 | Branches | **~89%** |
-| Functions | **~95.8%** |
+| Functions | **~96.5%** |
 | Lines | **~97%** |
-| Pruebas | **55** (6 suites) |
+| Pruebas | **74** (6 suites) |
 
 > Los archivos excluidos son solo los entry points (`server.js`, `seed.js`), que no contienen lógica testeable. El resto del código fuente sí se mide.
 
@@ -357,6 +387,7 @@ Qué se prueba:
 - Perfil con/sin/esquema incorrecto de token; usuario borrado
 - Autorización por roles (403/401, unidades del middleware)
 - Creación/lista/consulta de donantes + validaciones + 404/400
+- Edición (parcial, validaciones, 403/401/404) y eliminación (200, 403/401/404, doble borrado)
 - Manejador de errores (500 genérico, statusCode personalizado, headersSent)
 - Flujo integral registro → login → crear → consultar
 - Seed del administrador: creación, no duplicado, sincronización de rol/contraseña, credenciales inválidas
@@ -368,14 +399,15 @@ Qué se prueba:
 Interfaz estática servida por Express (`public/`):
 
 - **`/`** → login, registro y panel de sesión (nombre, correo, **rol**).
-- **`/donantes.html`** → lista de donantes; formulario de alta **solo visible para administrador**.
+- **`/donantes.html`** → lista de donantes; formulario de alta/edición y botones **Editar/Eliminar solo visibles para administrador**.
 
 Flujo de prueba en navegador:
 
 1. `npm run seed && npm start` → `http://localhost:3000`
 2. Login con el admin → ves rol *administrador* → “Ir a donantes”
 3. Registrar un donante → aparece en la tabla
-4. Cerrar sesión → registrar un usuario normal → login → el formulario de donantes **no aparece** (y la API devolvería 403 si se llamara a POST)
+4. Como admin: **Editar** rellena el formulario (botón *Cancelar* sale del modo edición) y **Eliminar** pide confirmación antes de borrar
+5. Cerrar sesión → registrar un usuario normal → login → ni el formulario ni los botones de acción **aparecen** (y la API devolvería 403 si se llamara a POST/PUT/DELETE)
 
 El token se guarda en `localStorage` y se envía en cada petición (`public/js/api.js`).
 

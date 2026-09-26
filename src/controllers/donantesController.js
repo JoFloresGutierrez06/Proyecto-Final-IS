@@ -27,4 +27,22 @@ function obtenerPorId(req, res, next) {
   }
 }
 
-module.exports = { crear, listar, obtenerPorId };
+function actualizar(req, res, next) {
+  try {
+    const donante = donanteService.actualizarDonante(req.params.id, req.body);
+    res.json({ mensaje: 'Donante actualizado correctamente', donante });
+  } catch (error) {
+    next(error);
+  }
+}
+
+function eliminar(req, res, next) {
+  try {
+    const donante = donanteService.eliminarDonante(req.params.id);
+    res.json({ mensaje: 'Donante eliminado correctamente', donante });
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = { crear, listar, obtenerPorId, actualizar, eliminar };

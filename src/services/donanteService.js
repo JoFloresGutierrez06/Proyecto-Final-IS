@@ -25,6 +25,27 @@ function validarDonante({ nombre, tipo, contacto_email, contacto_telefono }) {
   return errores;
 }
 
+function validarId(id) {
+  const numId = Number(id);
+  if (!Number.isInteger(numId) || numId <= 0) {
+    const error = new Error('El id debe ser un número entero positivo');
+    error.statusCode = 400;
+    throw error;
+  }
+  return numId;
+}
+
+function buscarExistente(id) {
+  const numId = validarId(id);
+  const donante = donanteRepository.encontrarPorId(numId);
+  if (!donante) {
+    const error = new Error('Donante no encontrado');
+    error.statusCode = 404;
+    throw error;
+  }
+  return { numId, donante };
+}
+
 function crearDonante(datos) {
   const errores = validarDonante(datos);
   if (errores.length > 0) {
@@ -46,20 +67,40 @@ function listarDonantes() {
 }
 
 function obtenerDonante(id) {
-  const numId = Number(id);
-  if (!Number.isInteger(numId) || numId <= 0) {
-    const error = new Error('El id debe ser un número entero positivo');
+  return buscarExistente(id).donante;
+}
+
+function actualizarDonante(id, datos) {
+  const { numId, donante } = buscarExistente(id);
+
+  // Actualización parcial: lo que no se envía conserva su valor actual
+  const combinado = {
+    nombre: datos.nombre !== undefined ? datos.nombre : donante.nombre,
+    tipo: datos.tipo !== undefined ? datos.tipo : donante.tipo,
+    contacto_email:
+      datos.contacto_email !== undefined ? datos.contacto_email : donante.contacto_email,
+    contacto_telefono:
+      datos.contacto_telefono !== undefined ? datos.contacto_telefono : donante.contacto_telefono,
+  };
+
+  const errores = validarDonante(combinado);
+  if (errores.length > 0) {
+    const error = new Error(errores.join(', '));
     error.statusCode = 400;
     throw error;
   }
 
-  const donante = donanteRepository.encontrarPorId(numId);
-  if (!donante) {
-    const error = new Error('Donante no encontrado');
-    error.statusCode = 404;
-    throw error;
-  }
+  return donanteRepository.actualizar(numId, {
+    nombre: combinado.nombre.trim(),
+    tipo: combinado.tipo,
+    contacto_email: combinado.contacto_email || null,
+    contacto_telefono: combinado.contacto_telefono || null,
+  });
+}
 
+function eliminarDonante(id) {
+  const { numId, donante } = buscarExistente(id);
+  donanteRepository.eliminar(numId);
   return donante;
 }
 
@@ -67,6 +108,8 @@ module.exports = {
   crearDonante,
   listarDonantes,
   obtenerDonante,
+  actualizarDonante,
+  eliminarDonante,
   validarDonante,
   TIPOS_VALIDOS,
 };

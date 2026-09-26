@@ -20,7 +20,7 @@
     </header>
 
     <section class="tarjeta" id="panel-crear" hidden>
-      <h2>Registrar donante</h2>
+      <h2 id="panel-titulo">Registrar donante</h2>
       <form id="form-donante">
         <label for="d-nombre">Nombre *</label>
         <input type="text" id="d-nombre" required />
@@ -37,7 +37,10 @@
         <label for="d-tel">Teléfono de contacto</label>
         <input type="tel" id="d-tel" />
 
-        <button type="submit" class="boton boton-primario">Guardar donante</button>
+        <div class="acciones">
+          <button type="submit" class="boton boton-primario" id="btn-guardar">Guardar donante</button>
+          <button type="button" class="boton" id="btn-cancelar" hidden>Cancelar</button>
+        </div>
       </form>
       <p id="msg-donante" class="mensaje" hidden></p>
     </section>
@@ -56,6 +59,7 @@
             <th>Tipo</th>
             <th>Contacto</th>
             <th>Registro</th>
+            <th id="th-acciones" hidden>Acciones</th>
           </tr>
         </thead>
         <tbody></tbody>

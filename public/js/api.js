@@ -50,4 +50,12 @@ const API = {
   post(ruta, cuerpo) {
     return this.solicitar('POST', ruta, cuerpo);
   },
+
+  put(ruta, cuerpo) {
+    return this.solicitar('PUT', ruta, cuerpo);
+  },
+
+  del(ruta) {
+    return this.solicitar('DELETE', ruta);
+  },
 };
