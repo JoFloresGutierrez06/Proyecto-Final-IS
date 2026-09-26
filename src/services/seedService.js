@@ -4,11 +4,18 @@ const userRepository = require('../repositories/userRepository');
 const { validarRegistro } = require('./authService');
 
 function variablesDeAdminDefinidas() {
-  return Boolean(process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD);
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
+  return Boolean(email && email.trim() && password && password.trim());
 }
 
 async function asegurarAdmin() {
-  const { email, password, name } = env.admin;
+  // Los valores de entorno pueden traer espacios o saltos de línea ocultos
+  // (típico al pegar en el editor de variables de Render); se recortan
+  // para que el hash coincida siempre con lo que se escribe en el login.
+  const email = (env.admin.email || '').trim();
+  const password = (env.admin.password || '').trim();
+  const name = (env.admin.name || '').trim() || 'Administrador';
 
   const errores = validarRegistro({ nombre: name, correo: email, contrasena: password });
   if (errores.length > 0) {
@@ -17,7 +24,7 @@ async function asegurarAdmin() {
     throw error;
   }
 
-  const correo = email.trim().toLowerCase();
+  const correo = email.toLowerCase();
   const existente = userRepository.encontrarPorCorreo(correo);
 
   if (!existente) {

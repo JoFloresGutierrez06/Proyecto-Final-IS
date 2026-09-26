@@ -66,6 +66,39 @@ describe('seedService - asegurarAdmin', () => {
       env.admin.password = original;
     }
   });
+
+  test('tolera espacios y saltos de línea ocultos en las variables de entorno', async () => {
+    const originalPassword = env.admin.password;
+    const originalEmail = env.admin.email;
+    env.admin.password = `  ${originalPassword} \n`;
+    env.admin.email = ` ${originalEmail}  `;
+    try {
+      const resultado = await asegurarAdmin();
+      expect(resultado.accion).toBe('creado');
+      expect(resultado.correo).toBe(originalEmail.trim().toLowerCase());
+
+      const sesion = await require('../src/services/authService').iniciarSesion({
+        correo: originalEmail.trim(),
+        contrasena: originalPassword.trim(),
+      });
+      expect(sesion.usuario.rol).toBe('administrador');
+    } finally {
+      env.admin.password = originalPassword;
+      env.admin.email = originalEmail;
+    }
+  });
+
+  test('recuenta admin: sin email no se considera definido', () => {
+    const email = process.env.ADMIN_EMAIL;
+    const password = process.env.ADMIN_PASSWORD;
+    process.env.ADMIN_EMAIL = '   ';
+    expect(variablesDeAdminDefinidas()).toBe(false);
+    process.env.ADMIN_EMAIL = email;
+    process.env.ADMIN_PASSWORD = '   ';
+    expect(variablesDeAdminDefinidas()).toBe(false);
+    process.env.ADMIN_PASSWORD = password;
+    expect(variablesDeAdminDefinidas()).toBe(true);
+  });
 });
 
 describe('seedService - variablesDeAdminDefinidas', () => {
