@@ -57,6 +57,7 @@ async function iniciarSesion({ correo, contrasena }) {
 
   const usuario = userRepository.encontrarPorCorreo(correo.trim().toLowerCase());
   if (!usuario) {
+    console.warn(`[login] usuario no encontrado: ${JSON.stringify(correo.trim().toLowerCase())}`);
     const error = new Error('Credenciales inválidas');
     error.statusCode = 401;
     throw error;
@@ -64,6 +65,7 @@ async function iniciarSesion({ correo, contrasena }) {
 
   const coincide = await bcrypt.compare(contrasena, usuario.contrasena);
   if (!coincide) {
+    console.warn(`[login] contraseña incorrecta para: ${JSON.stringify(usuario.correo)}`);
     const error = new Error('Credenciales inválidas');
     error.statusCode = 401;
     throw error;

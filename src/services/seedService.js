@@ -3,19 +3,25 @@ const env = require('../config/env');
 const userRepository = require('../repositories/userRepository');
 const { validarRegistro } = require('./authService');
 
+// Espacios, saltos de línea y caracteres invisibles (zero-width, BOM, etc.)
+// que suelen colarse al pegar valores en el editor de variables de Render.
+function limpiarValor(valor) {
+  return (valor || '')
+    .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function variablesDeAdminDefinidas() {
   const email = process.env.ADMIN_EMAIL;
   const password = process.env.ADMIN_PASSWORD;
-  return Boolean(email && email.trim() && password && password.trim());
+  return Boolean(limpiarValor(email) && limpiarValor(password));
 }
 
 async function asegurarAdmin() {
-  // Los valores de entorno pueden traer espacios o saltos de línea ocultos
-  // (típico al pegar en el editor de variables de Render); se recortan
-  // para que el hash coincida siempre con lo que se escribe en el login.
-  const email = (env.admin.email || '').trim();
-  const password = (env.admin.password || '').trim();
-  const name = (env.admin.name || '').trim() || 'Administrador';
+  const email = limpiarValor(env.admin.email);
+  const password = limpiarValor(env.admin.password);
+  const name = limpiarValor(env.admin.name) || 'Administrador';
 
   const errores = validarRegistro({ nombre: name, correo: email, contrasena: password });
   if (errores.length > 0) {

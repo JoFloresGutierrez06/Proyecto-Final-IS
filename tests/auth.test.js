@@ -79,6 +79,29 @@ describe('Autenticación - inicio de sesión', () => {
     expect(res.body.mensaje).toMatch(/credenciales/i);
   });
 
+  test('registra en el log el motivo del fallo (usuario no encontrado)', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await login('nadie@test.com', 'secret123');
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[login] usuario no encontrado'));
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('nadie@test.com'));
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  test('registra en el log el motivo del fallo (contraseña incorrecta)', async () => {
+    const { datos } = await registrarUsuario();
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await login(datos.correo, 'otra-clave');
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[login] contraseña incorrecta'));
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining(datos.correo));
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   test('rechaza login sin credenciales (400)', async () => {
     const res = await request(app).post('/api/auth/login').send({});
     expect(res.status).toBe(400);

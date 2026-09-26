@@ -88,6 +88,28 @@ describe('seedService - asegurarAdmin', () => {
     }
   });
 
+  test('descarta caracteres invisibles (zero-width) pegados en las variables de entorno', async () => {
+    const originalPassword = env.admin.password;
+    const originalEmail = env.admin.email;
+    const zeroWidth = '\u200B\uFEFF\u202E';
+    env.admin.password = `${zeroWidth}${originalPassword}${zeroWidth}`;
+    env.admin.email = `${zeroWidth}${originalEmail}`;
+    try {
+      const resultado = await asegurarAdmin();
+      expect(resultado.accion).toBe('creado');
+      expect(resultado.correo).toBe(originalEmail.trim().toLowerCase());
+
+      const sesion = await require('../src/services/authService').iniciarSesion({
+        correo: originalEmail.trim(),
+        contrasena: originalPassword,
+      });
+      expect(sesion.usuario.rol).toBe('administrador');
+    } finally {
+      env.admin.password = originalPassword;
+      env.admin.email = originalEmail;
+    }
+  });
+
   test('recuenta admin: sin email no se considera definido', () => {
     const email = process.env.ADMIN_EMAIL;
     const password = process.env.ADMIN_PASSWORD;
