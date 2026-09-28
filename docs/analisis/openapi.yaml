@@ -1,0 +1,181 @@
+openapi: 3.0.3
+info:
+  title: API Gestión de Donaciones
+  description: MVP de gestión de donaciones - Express + JWT + roles
+  version: 0.1.0
+servers:
+  - url: http://host.docker.internal:3000
+paths:
+  /api/salud:
+    get:
+      summary: Health check de la API
+      responses:
+        '200':
+          description: Estado del servicio
+  /api/auth/registro:
+    post:
+      summary: Registrar usuario (rol usuario)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, correo, contrasena]
+              properties:
+                nombre:
+                  type: string
+                  example: Ana Pérez
+                correo:
+                  type: string
+                  example: ana@ejemplo.com
+                contrasena:
+                  type: string
+                  example: secret123
+      responses:
+        '201':
+          description: Usuario creado
+        '400':
+          description: Validación fallida
+        '409':
+          description: Correo ya registrado
+  /api/auth/login:
+    post:
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [correo, contrasena]
+              properties:
+                correo:
+                  type: string
+                  example: admin@donaciones.com
+                contrasena:
+                  type: string
+                  example: Admin1234!
+      responses:
+        '200':
+          description: JWT emitido
+        '401':
+          description: Credenciales inválidas
+  /api/auth/perfil:
+    get:
+      summary: Perfil del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Datos del usuario
+        '401':
+          description: Sin token
+  /api/donantes:
+    get:
+      summary: Listar donantes
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de donantes
+        '401':
+          description: Sin token
+    post:
+      summary: Crear donante (solo administrador)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, tipo]
+              properties:
+                nombre:
+                  type: string
+                  example: Alimentos del Sur S.A.
+                tipo:
+                  type: string
+                  enum: [empresa, organizacion]
+                contacto_email:
+                  type: string
+                  example: contacto@sur.com
+                contacto_telefono:
+                  type: string
+                  example: "555-1234"
+      responses:
+        '201':
+          description: Donante creado
+        '400':
+          description: Validación fallida
+        '403':
+          description: Rol insuficiente
+        '401':
+          description: Sin token
+  /api/donantes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Consultar donante por id
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Donante
+        '400':
+          description: Id no numérico
+        '404':
+          description: No encontrado
+    put:
+      summary: Editar donante (solo administrador, edición parcial)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+                  example: Nombre editado
+                tipo:
+                  type: string
+                  enum: [empresa, organizacion]
+                contacto_email:
+                  type: string
+                contacto_telefono:
+                  type: string
+      responses:
+        '200':
+          description: Donante actualizado
+        '400':
+          description: Validación fallida
+        '403':
+          description: Rol insuficiente
+        '404':
+          description: No encontrado
+    delete:
+      summary: Eliminar donante (solo administrador)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Donante eliminado
+        '403':
+          description: Rol insuficiente
+        '404':
+          description: No encontrado
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

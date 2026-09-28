@@ -25,6 +25,7 @@ Sistema web para gestionar donaciones de alimentos y recursos entre empresas y o
 15. [Despliegue (CD) — Render](#15-despliegue-cd--render)
 16. [Configuración manual necesaria](#16-configuración-manual-necesaria)
 17. [Funcionalidades futuras](#17-funcionalidades-futuras)
+18. [Análisis de seguridad y calidad](#18-análisis-de-seguridad-y-calidad)
 
 ---
 
@@ -64,6 +65,11 @@ Demostrar los requisitos mínimos del proyecto:
 
 ```
 ├── .github/workflows/ci.yml      # Pipeline CI/CD (pruebas + despliegue a Render)
+├── docs/
+│   └── analisis/                 # Informe de seguridad y calidad + reportes ZAP
+│       ├── informe.md
+│       ├── openapi.yaml          # Especificación OpenAPI de la API
+│       └── zap/                  # Reportes HTML/JSON de OWASP ZAP
 ├── public/                       # Frontend estático
 │   ├── index.html                # Login / registro / sesión
 │   ├── donantes.html             # Lista, alta, edición y eliminación de donantes
@@ -534,6 +540,43 @@ Para convertir este MVP en el sistema completo de gestión de donaciones:
 - **Migración a PostgreSQL/Supabase** mediante la capa de repositories ya preparada
 - **Frontend SPA** (React/Vite) si crece la interfaz
 - **Endtoend** con Playwright y nuevos permisos (ej. usuario puede proponer donaciones)
+
+---
+
+## 18. Análisis de seguridad y calidad
+
+Informe completo: **[`docs/analisis/informe.md`](docs/analisis/informe.md)** (con reportes de ZAP en `docs/analisis/zap/`).
+
+### OWASP ZAP (pruebas de seguridad)
+
+Dos escaneos **activos** contra la aplicación local (ZAP 2.17.0 en Docker):
+
+| Escaneo | Alcance | Resultado |
+|---|---|---|
+| Web completo (`zap-full-scan`) | Páginas + reglas activas XSS/SQLi | **0 fallos** · 8 advertencias · 133 PASS |
+| API REST (`zap-api-scan` + `openapi.yaml`) | 10 endpoints con payloads de inyección | **0 fallos** · 4 advertencias · 115 PASS |
+
+- **No se detectaron vulnerabilidades XSS ni SQLi.**
+- Las advertencias son de **cabeceras HTTP** (CSP, X-Frame-Options, X-Content-Type-Options, X-Powered-By…) → recomendaciones en el informe §1.5.
+
+### SonarQube (calidad de código)
+
+SonarQube 9.9.8 LTS + SonarScanner, configuración en `sonar-project.properties`.
+
+**Quality Gate: OK** — métricas finales:
+
+| Métrica | Valor |
+|---|---|
+| Bugs / Vulnerabilities / Code smells | **0 / 0 / 0** |
+| Deuda técnica | **0 min (0,0 %)** → mantenibilidad **A** |
+| Duplicación | 0,0 % |
+| Cobertura global | 66,1 % *(backend ~96 % según Jest)* |
+| Fiabilidad / Seguridad | **A / A** |
+| Security hotspots | 2 (revisión manual documentada en el informe §2.4) |
+
+**Ciclo de mejora:** el primer análisis halló **2 bugs** (`javascript:S6324` en `seedService.js`) → se corrigieron usando propiedades Unicode (`/[\p{Cc}\p{Cf}]/gu`) → re-análisis con **0 bugs**.
+
+Ver **[§18 completo en el informe](docs/analisis/informe.md)** para metodología, comandos de reproducción y análisis de cada hallazgo.
 
 ---
 

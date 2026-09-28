@@ -3,11 +3,12 @@ const env = require('../config/env');
 const userRepository = require('../repositories/userRepository');
 const { validarRegistro } = require('./authService');
 
-// Espacios, saltos de línea y caracteres invisibles (zero-width, BOM, etc.)
-// que suelen colarse al pegar valores en el editor de variables de Render.
+// Espacios, saltos de línea y caracteres de control o invisibles
+// (zero-width, BOM, marcas bidi, etc.) que suelen colarse al pegar
+// valores en el editor de variables de Render.
 function limpiarValor(valor) {
   return (valor || '')
-    .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g, '')
+    .replace(/[\p{Cc}\p{Cf}]/gu, '')
     .replace(/\s+/g, ' ')
     .trim();
 }

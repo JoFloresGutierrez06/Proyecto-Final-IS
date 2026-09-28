@@ -11,6 +11,9 @@ data/
 # Cobertura de pruebas
 coverage/
 
+# Artefactos de SonarQube Scanner
+.scannerwork/
+
 # Logs
 *.log
 npm-debug.log*
